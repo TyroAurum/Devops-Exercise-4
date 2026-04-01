@@ -1,0 +1,71 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Project
+        run: npm run build
+
+
+  test:
+    runs on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  docker:
+    runs on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+
+  deploy:
+    runs on: ubuntu-latest
+    needs: docker
+    env:
+      API_URL: ${{ github.ref == 'refs/heads/main' && 'https://api.production.com' || 'https://api.dev.com' }}
+      DB_NAME: ${{ github.ref == 'refs/heads/main' && 'prod_db' || 'dev_db' }}
+
+    steps:
+      - name: Print branch-specific environment variables
+        run: |
+          echo "Branch: ${{ github.ref }}"
+          echo "API_URL=$API_URL"
+          echo "DB_NAME=$DB_NAME"
