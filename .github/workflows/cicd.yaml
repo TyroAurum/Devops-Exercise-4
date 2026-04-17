@@ -88,10 +88,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: docker
-    env:
-      API_URL: ${{ github.ref == 'refs/heads/main' && 'https://api.production.com' || 'https://api.dev.com' }}
-      DB_NAME: ${{ github.ref == 'refs/heads/main' && 'prod_db' || 'dev_db' }}
-
+    environment: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
     steps:
       - name: Print branch-specific environment variables
         run: |
