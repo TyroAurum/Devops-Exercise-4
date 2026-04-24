@@ -93,5 +93,5 @@ jobs:
       - name: Print branch-specific environment variables
         run: |
           echo "Branch: ${{ github.ref }}"
-          echo "API_URL=$API_URL"
-          echo "DB_NAME=$DB_NAME"
+          echo "API_URL=${{vars.API_URL}}"
+          echo "DB_NAME=${{vars.DB_NAME}}"
